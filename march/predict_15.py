@@ -39,7 +39,8 @@ data['prev_5', 'BTC-USD'] = data['Close','BTC-USD'].shift(periods=5)
 data['prev_6', 'BTC-USD'] = data['Close','BTC-USD'].shift(periods=6)
 data['prev_7', 'BTC-USD'] = data['Close','BTC-USD'].shift(periods=7)
 
-data = data.dropna()
+data = data[data.columns].fillna(value=data[data.columns].mean())
+
 
 X = data.drop(['NextClose'], axis=1)
 y = data['NextClose', 'BTC-USD']
@@ -47,13 +48,13 @@ X_train, X_test, y_train, y_test = train_test_split(X,y,random_state = 14)
 lr = LinearRegression().fit(X_train, y_train)
 pred = lr.predict(X_test)
 
-#print("lr.coef_: {}".format(lr.coef_))
-#print("lr.intercept_: {}".format(lr.intercept_))
+# print("lr.coef_: {}".format(lr.coef_))
+# print("lr.intercept_: {}".format(lr.intercept_))
 
-#print("Training set score: {:.2f}".format(lr.score(X_train, y_train)))
-#print("Test set score: {:.2f}".format(lr.score(X_test, y_test)))
+# print("Training set score: {:.2f}".format(lr.score(X_train, y_train)))
+# print("Test set score: {:.2f}".format(lr.score(X_test, y_test)))
 
-#for close, actual, prediction in zip(X_test['Close','BTC-USD'], y_test, pred):
+# for close, actual, prediction in zip(X_test['Close','BTC-USD'], y_test, pred):
 #    print("previous close: " + str(close) +  " || actual: " + str(actual) + " || prediction: " + str(prediction))
 
 current = yf.download(  # or pdr.get_data_yahoo(...
@@ -92,10 +93,9 @@ current['prev_6', 'BTC-USD'] = current['Close','BTC-USD'].shift(periods=6)
 current['prev_7', 'BTC-USD'] = current['Close','BTC-USD'].shift(periods=7)
 
 
-
-current = current.dropna()
+current = current[current.columns].fillna(value=current[current.columns].mean())
 current_pred = lr.predict(current)
 
+print(current)
 print("Most Recent Price: " + str(current.iloc[-1][0]))
 print("Projected Price in 15 Minutes: " + str(current_pred[-1]))
-
