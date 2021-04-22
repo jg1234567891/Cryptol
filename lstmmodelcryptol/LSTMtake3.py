@@ -11,7 +11,7 @@ from tensorflow.keras import layers
 
 
 tick = ["BTC-USD"]
-def ts_download_btc(per="5d", inter="15m"):
+def ts_download_btc(per="3d", inter="15m"):
     data = yf.download(
             tickers = tick, 
             period = per,
@@ -25,17 +25,15 @@ def ts_download_btc(per="5d", inter="15m"):
 
 
 
-df = ts_download_btc("5d")
-df.fillna(method="ffill", inplace=True)  # if there are gaps in data, use previously known values
+df = ts_download_btc("3d")
+df.fillna(method="ffill", inplace=True)
 df.dropna(inplace=True)
 print(df)
 cl = df
 train = cl[0:int(len(cl)*0.80)]
 scl = MinMaxScaler()
-
 scl.fit(train.values.reshape(-1,1))
 cl =scl.transform(cl.values.reshape(-1,1))
-#function to process the data into lb observations look back slices 90/10
 def processData(data,lb):
     X,Y = [],[]
     for i in range(len(data)-lb-1):
@@ -48,16 +46,13 @@ X,y = processData(cl,lb)
 X_train,X_test = X[:int(X.shape[0]*0.90)],X[int(X.shape[0]*0.90):]
 y_train,y_test = y[:int(y.shape[0]*0.90)],y[int(y.shape[0]*0.90):]
 
-#creating the model
 model = Sequential()
 model.add(LSTM(256,input_shape=(lb,1)))
 model.add(Dense(1))
 model.compile(optimizer='adam',loss='mse')
-#reshaping data
 X_train = X_train.reshape((X_train.shape[0],X_train.shape[1],1))
 X_test = X_test.reshape((X_test.shape[0],X_test.shape[1],1))
-#Fitting model with history checking for overfitting
-history = model.fit(X_train,y_train,epochs=30,validation_data=(X_test,y_test),shuffle=False)
+history = model.fit(X_train,y_train,epochs=80,validation_data=(X_test,y_test),shuffle=False)
 model.summary() 
 
 Xt = model.predict(X_train)
